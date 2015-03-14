@@ -1,0 +1,66 @@
+// Panel
+var data = require("sdk/self").data;
+var panel = require("sdk/panel").Panel({
+	contentURL: data.url("text-entry.html"),
+	width: 500,
+	height: 300,
+	contentStyleFile: data.url("css/drscratch.css"),
+    contentScriptFile: [
+        data.url("js/jquery-2.1.3.min.js"),
+        data.url("get-text.js"), 
+    ]
+});
+
+
+
+// Get the active tab url
+var tabs = require("sdk/tabs");
+
+
+// Create request to DrScratch
+var Request = require("sdk/request").Request;
+var doctor = Request({
+	url: url4scratch,
+	onComplete: function (response) {
+		var gresponse = response.text;
+		panel.port.emit("gresponse", gresponse);
+		console.log("estoy en request##");
+	}
+});
+
+
+// Create a button
+require("sdk/ui/button/action").ActionButton({
+	id: "show-panel",
+	label: "Show Panel",
+	icon: {
+		"16": "./icon-16.png",
+		"32": "./icon-32.png"
+	},
+    onClick: handleClick
+});
+
+
+function handleClick(state){
+	var url = tabs.activeTab.url;
+	var lurl = url.split("/");
+	var idproject = lurl[4];
+	var url4scratch = "http://localhost:1234/pluginAnalysis/" + idproject;
+
+	doctor.get();
+	panel.show();
+}
+
+// When the panel is displayed it generated an event called
+// "show": we will listen for that event and when it happens,
+// send our own "show" event to the panel's script, so the
+// script can prepare the panel for display.
+panel.on("show", function() {
+	panel.port.emit("show");
+});
+
+
+
+
+
+
